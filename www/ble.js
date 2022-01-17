@@ -185,6 +185,10 @@ module.exports = {
         cordova.exec(success, failure, 'BLE', 'write', [device_id, service_uuid, characteristic_uuid, value]);
     },
 
+    discover: function () {
+        cordova.exec(success, failure, "BLE", "discover", [params]);
+    },
+
     // value must be an ArrayBuffer
     writeWithoutResponse: function (device_id, service_uuid, characteristic_uuid, value, success, failure) {
         cordova.exec(success, failure, 'BLE', 'writeWithoutResponse', [device_id, service_uuid, characteristic_uuid, value]);
