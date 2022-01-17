@@ -182,6 +182,179 @@
     }
 }
 
+-(NSDictionary*) getArgsObject:(NSArray *)args {
+  if (args == nil) {
+    return nil;
+  }
+
+  if (args.count != 1) {
+    return nil;
+  }
+
+  NSObject* arg = [args objectAtIndex:0];
+
+  if (![arg isKindOfClass:[NSDictionary class]]) {
+    return nil;
+  }
+
+  return (NSDictionary *)[args objectAtIndex:0];
+}
+
+- (BOOL) isNotAddress:(NSUUID *)address :(CDVInvokedUrlCommand *)command {
+  if (address == nil) {
+    NSDictionary* returnObj = [NSDictionary dictionaryWithObjectsAndKeys: errorConnect, keyError, logNoAddress, keyMessage, nil];
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:returnObj];
+    [pluginResult setKeepCallbackAsBool:false];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    return true;
+  }
+
+  return false;
+}
+
+- (NSMutableDictionary *) wasNeverConnected:(NSUUID *)address :(CDVInvokedUrlCommand *)command {
+  NSMutableDictionary* connection = [connections objectForKey:address];
+  if (connection != nil) {
+    return connection;
+  }
+
+  NSDictionary* returnObj = [NSDictionary dictionaryWithObjectsAndKeys: errorNeverConnected, keyError, logNeverConnected, keyMessage, [address UUIDString], keyAddress, nil];
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:returnObj];
+  [pluginResult setKeepCallbackAsBool:false];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+  return nil;
+}
+
+- (BOOL) isNotConnected:(CBPeripheral *)peripheral :(CDVInvokedUrlCommand *)command {
+  if (peripheral.state == CBPeripheralStateConnected) {
+    return false;
+  }
+
+  NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
+
+  [self addDevice:peripheral :returnObj];
+
+  [returnObj setValue:errorIsNotConnected forKey:keyError];
+  [returnObj setValue:logIsNotConnected forKey:keyMessage];
+
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:returnObj];
+  [pluginResult setKeepCallbackAsBool:false];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+  return true;
+}
+
+- (BOOL) isAlreadyDiscovered:(NSMutableDictionary*) connection :(CDVInvokedUrlCommand *)command {
+  if ([[connection objectForKey:keyIsDiscovered] intValue] == 0) {
+    return false;
+  }
+
+  NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
+
+  CBPeripheral* peripheral = [connection objectForKey:keyPeripheral];
+  [self addDevice:peripheral :returnObj];
+
+  [returnObj setValue:errorDiscover forKey:keyError];
+  [returnObj setValue:logAlreadyDiscovering forKey:keyMessage];
+
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:returnObj];
+  [pluginResult setKeepCallbackAsBool:false];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+  return true;
+}
+
+
+-(NSMutableArray*) getUuids:(NSDictionary *) dictionary forType:(NSString*) type {
+  NSMutableArray* uuids = [[NSMutableArray alloc] init];
+
+  NSArray* checkUuids = [dictionary valueForKey:type];
+
+  if (checkUuids == nil) {
+    return nil;
+  }
+
+  if (![checkUuids isKindOfClass:[NSArray class]]) {
+    return nil;
+  }
+
+  for (NSString* checkUuid in checkUuids) {
+    if (![checkUuid isKindOfClass:[NSString class]]) {
+      continue;
+    }
+
+    CBUUID* uuid = [CBUUID UUIDWithString:checkUuid];
+
+    if (uuid != nil) {
+      [uuids addObject:uuid];
+    }
+  }
+
+  if (uuids.count == 0) {
+    return nil;
+  }
+
+  return uuids;
+}
+
+- (void)discover:(CDVInvokedUrlCommand*)command {
+//Ensure Bluetooth is enabled
+//   if ([self isNotInitialized:command]) {
+//     return;
+//   }
+
+  //Get the arguments
+  NSDictionary* obj = [self getArgsObject:command.arguments];
+  if ([self isNotArgsObject:obj :command]) {
+    return;
+  }
+
+  //Get the connection address
+  NSUUID* address = [self getAddress:obj];
+  if ([self isNotAddress:address :command]) {
+    return;
+  }
+
+  //If never connected or attempted connected, reconnect can't be used
+  NSMutableDictionary* connection = [self wasNeverConnected:address :command];
+  if (connection == nil) {
+    return;
+  }
+
+  //Get the peripheral
+  CBPeripheral* peripheral = [connection objectForKey:keyPeripheral];
+
+  //Ensure connection is connected
+  if ([self isNotConnected:peripheral :command]) {
+    return;
+  }
+
+  //Check if already discovered
+  if ([self isAlreadyDiscovered:connection :command]) {
+    return;
+  }
+
+  //Set the discover callback
+  [connection setObject:command.callbackId forKey:operationDiscover];
+
+  //Create dictionary to managed discovered services/characteristics/descriptors
+  NSMutableDictionary* discoveryQueue = [NSMutableDictionary dictionary];
+  [discoveryQueue setValue:[NSMutableDictionary dictionary] forKey:keyServices];
+  [discoveryQueue setValue:[NSMutableDictionary dictionary] forKey:keyCharacteristics];
+  [connection setObject:discoveryQueue forKey:keyIsDiscoveredQueue];
+
+  //Start a complete discovery
+  [connection setObject:[NSNumber numberWithInt:1] forKey:keyIsDiscovered];
+
+  //Get the serviceUuids to discover
+  NSMutableArray* serviceUuids = [self getUuids:obj forType:keyServices];
+
+  //Discover the services
+  [peripheral discoverServices:serviceUuids];
+
+}
+
 // writeWithoutResponse: function (device_id, service_uuid, characteristic_uuid, value, success, failure) {
 - (void)writeWithoutResponse:(CDVInvokedUrlCommand*)command {
     NSLog(@"writeWithoutResponse");
