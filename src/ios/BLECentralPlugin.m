@@ -22,11 +22,18 @@
 //object keys
 NSString *const keyPeripheral = @"peripheral";
 NSString *const keyError = @"error";
-NSString *const errorIsNotConnected = @"isNotConnected";
+NSString *const keyAddress = @"address";
+NSString *const keyMessage = @"message";
+
+//error messages 
+NSString *const logNeverConnected = @"Never connected to connection";
+NSString *const logNoAddress = @"No connection address";
 
 //error types
 NSString *const errorIsNotConnected = @"isNotConnected";
 NSString *const errorDiscover = @"discover";
+NSString *const errorNeverConnected = @"neverConnected";
+NSString *const errorConnect = @"connect";
 
 @interface BLECentralPlugin() {
     NSDictionary *bluetoothStates;
