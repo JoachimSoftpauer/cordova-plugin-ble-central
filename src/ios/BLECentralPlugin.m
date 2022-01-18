@@ -329,6 +329,41 @@ NSString *const errorConnect = @"connect";
   [returnObj setValue:peripheral.identifier.UUIDString forKey:keyAddress];
 }
 
+- (BOOL) isNotArgsObject:(NSDictionary*) obj :(CDVInvokedUrlCommand *)command {
+  if (obj != nil) {
+    return false;
+  }
+
+  NSDictionary* returnObj = [NSDictionary dictionaryWithObjectsAndKeys: errorArguments, keyError, logNoArgObj, keyMessage, nil];
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:returnObj];
+  [pluginResult setKeepCallbackAsBool:false];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+  return true;
+}
+
+-(NSUUID*) getAddress:(NSDictionary *)obj {
+  NSString* addressString = [obj valueForKey:keyAddress];
+
+  if (addressString == nil) {
+    return nil;
+  }
+
+  if (![addressString isKindOfClass:[NSString class]]) {
+    return nil;
+  }
+
+  return [[NSUUID UUID] initWithUUIDString:addressString];
+}
+
+-(NSObject*) formatName:(NSString*)name {
+  if (name != nil) {
+    return name;
+  }
+
+  return [NSNull null];
+}
+
 - (void)discover:(CDVInvokedUrlCommand*)command {
 //Ensure Bluetooth is enabled
 //   if ([self isNotInitialized:command]) {
