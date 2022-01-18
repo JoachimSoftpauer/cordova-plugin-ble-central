@@ -43,6 +43,9 @@ NSString *const errorIsNotConnected = @"isNotConnected";
 NSString *const errorDiscover = @"discover";
 NSString *const errorNeverConnected = @"neverConnected";
 NSString *const errorConnect = @"connect";
+NSString *const errorArguments = @"arguments";
+NSString *const logNoArgObj = @"Argument object not found";
+
 
 @interface BLECentralPlugin() {
     NSDictionary *bluetoothStates;
@@ -81,6 +84,8 @@ NSString *const errorConnect = @"connect";
                        @"on", @(CBCentralManagerStatePoweredOn),
                        nil];
     readRSSICallbacks = [NSMutableDictionary new];
+
+    connections = [NSMutableDictionary dictionary];
 }
 
 #pragma mark - Cordova Plugin Methods
