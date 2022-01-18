@@ -185,7 +185,7 @@ module.exports = {
         cordova.exec(success, failure, 'BLE', 'write', [device_id, service_uuid, characteristic_uuid, value]);
     },
 
-    discover: function () {
+    discover: function (success, failure, params) {
         cordova.exec(success, failure, "BLE", "discover", [params]);
     },
 
