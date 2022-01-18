@@ -24,10 +24,19 @@ NSString *const keyPeripheral = @"peripheral";
 NSString *const keyError = @"error";
 NSString *const keyAddress = @"address";
 NSString *const keyMessage = @"message";
+NSString *const keyServices = @"services";
+NSString *const keyName = @"name";
+NSString *const keyIsDiscovered = @"isDiscovered";
+NSString *const keyIsDiscoveredQueue = @"isDiscoveredQueue";
+NSString *const keyCharacteristics = @"characteristics";
+NSString *const logIsNotConnected = @"Device isn't connected";
 
 //error messages 
 NSString *const logNeverConnected = @"Never connected to connection";
 NSString *const logNoAddress = @"No connection address";
+
+NSString *const logAlreadyDiscovering = @"Already discovering device";
+NSString *const operationDiscover = @"discover";
 
 //error types
 NSString *const errorIsNotConnected = @"isNotConnected";
