@@ -19,6 +19,15 @@
 #import "BLECentralPlugin.h"
 #import <Cordova/CDV.h>
 
+//object keys
+NSString *const keyPeripheral = @"peripheral";
+NSString *const keyError = @"error";
+NSString *const errorIsNotConnected = @"isNotConnected";
+
+//error types
+NSString *const errorIsNotConnected = @"isNotConnected";
+NSString *const errorDiscover = @"discover";
+
 @interface BLECentralPlugin() {
     NSDictionary *bluetoothStates;
 }
@@ -296,6 +305,12 @@
   }
 
   return uuids;
+}
+
+-(void) addDevice:(CBPeripheral*)peripheral :(NSDictionary*)returnObj {
+  NSObject* name = [self formatName:peripheral.name];
+  [returnObj setValue:name forKey:keyName];
+  [returnObj setValue:peripheral.identifier.UUIDString forKey:keyAddress];
 }
 
 - (void)discover:(CDVInvokedUrlCommand*)command {
