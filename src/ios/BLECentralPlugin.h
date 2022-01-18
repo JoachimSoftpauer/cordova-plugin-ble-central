@@ -35,6 +35,7 @@
     NSMutableDictionary *stopNotificationCallbacks;
     NSMutableDictionary *connectCallbackLatches;
     NSMutableDictionary *readRSSICallbacks;
+    NSMutableDictionary* connections;
 }
 
 @property (strong, nonatomic) NSMutableSet *peripherals;
